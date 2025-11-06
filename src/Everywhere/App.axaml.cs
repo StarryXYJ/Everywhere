@@ -211,6 +211,7 @@ file class DesignTimeVisualElementContext : IVisualElementContext
     public IVisualElement? ElementFromPoint(PixelPoint point, PickElementMode mode = PickElementMode.Element) => null;
     public IVisualElement? ElementFromPointer(PickElementMode mode = PickElementMode.Element) => null;
     public Task<IVisualElement?> PickElementAsync(PickElementMode mode) => Task.FromResult<IVisualElement?>(null);
+    public Task<PixelRect?> PickRegionAsync() => Task.FromResult<PixelRect?>(null);
 }
 
 file class DesignTimeHotkeyListener : IHotkeyListener

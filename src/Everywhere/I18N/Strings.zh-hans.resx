@@ -1,4 +1,4 @@
-﻿<root>
+<root>
     <resheader name="resmimetype">
         <value>text/microsoft-resx</value>
     </resheader>
@@ -151,6 +151,12 @@
     </data>
     <data name="ChatWindow_ChatInputBox_AddAttachmentMenuItems_PickScreen" xml:space="preserve">
         <value>选择屏幕</value>
+    </data>
+    <data name="ChatWindow_ChatInputBox_AddAttachmentMenuItems_CaptureScreen" xml:space="preserve">
+        <value>捕获屏幕</value>
+    </data>
+    <data name="ChatWindow_ChatInputBox_AddAttachmentMenuItems_CaptureScreenRegion" xml:space="preserve">
+        <value>捕获屏幕区域</value>
     </data>
     <data name="ChatWindow_ChatInputBox_AddAttachmentMenuItems_PickWindow" xml:space="preserve">
         <value>选择窗口</value>

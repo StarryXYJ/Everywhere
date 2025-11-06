@@ -1,4 +1,4 @@
-﻿<v:ReactiveWindow
+<v:ReactiveWindow
   x:Class="Everywhere.Views.ChatWindow" xmlns="https://github.com/avaloniaui"
   xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml" xmlns:at="clr-namespace:Everywhere.AttachedProperties"
   xmlns:be="clr-namespace:Everywhere.Behaviors" xmlns:chat="clr-namespace:Everywhere.Chat"
@@ -756,6 +756,24 @@
                 <LucideIcon
                   Width="18" Height="18"
                   Kind="Monitor" Size="18"/>
+              </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem
+              Command="{Binding CaptureScreenCommand}"
+              Header="{I18N {x:Static LocaleKey.ChatWindow_ChatInputBox_AddAttachmentMenuItems_CaptureScreen}}">
+              <MenuItem.Icon>
+                <LucideIcon
+                  Width="18" Height="18"
+                  Kind="Camera" Size="18"/>
+              </MenuItem.Icon>
+            </MenuItem>
+            <MenuItem
+              Command="{Binding CaptureScreenRegionCommand}"
+              Header="{I18N {x:Static LocaleKey.ChatWindow_ChatInputBox_AddAttachmentMenuItems_CaptureScreenRegion}}">
+              <MenuItem.Icon>
+                <LucideIcon
+                  Width="18" Height="18"
+                  Kind="Crop" Size="18"/>
               </MenuItem.Icon>
             </MenuItem>
             <MenuItem

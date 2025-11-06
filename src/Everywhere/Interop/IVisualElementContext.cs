@@ -1,4 +1,4 @@
-﻿namespace Everywhere.Interop;
+namespace Everywhere.Interop;
 
 public enum PickElementMode
 {
@@ -46,4 +46,10 @@ public interface IVisualElementContext
     /// </summary>
     /// <returns></returns>
     Task<IVisualElement?> PickElementAsync(PickElementMode mode);
+
+    /// <summary>
+    /// Let the user select a region from the screen by dragging.
+    /// </summary>
+    /// <returns></returns>
+    Task<PixelRect?> PickRegionAsync();
 }
