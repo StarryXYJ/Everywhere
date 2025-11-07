@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 
 <root>
     <xsd:schema id="root" xmlns="" xmlns:xsd="http://www.w3.org/2001/XMLSchema"
@@ -166,6 +166,14 @@
     <data name="ChatWindow_ChatInputBox_AddAttachmentMenuItems_PickScreen"
         xml:space="preserve">
         <value>Pick screen</value>
+    </data>
+    <data name="ChatWindow_ChatInputBox_AddAttachmentMenuItems_CaptureScreen"
+        xml:space="preserve">
+        <value>Capture screen</value>
+    </data>
+    <data name="ChatWindow_ChatInputBox_AddAttachmentMenuItems_CaptureScreenRegion"
+        xml:space="preserve">
+        <value>Capture screen region</value>
     </data>
     <data name="ChatWindow_ChatInputBox_AddAttachmentMenuItems_PickWindow"
         xml:space="preserve">

@@ -1,4 +1,4 @@
-﻿using System.ComponentModel;
+using System.ComponentModel;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.Runtime.InteropServices;
@@ -104,6 +104,20 @@ public partial class Win32VisualElementContext : IVisualElementContext
         var windows = desktopLifetime.Windows.AsValueEnumerable().Where(w => w.IsVisible).ToList();
         foreach (var window in windows) _nativeHelper.HideWindowWithoutAnimation(window);
         var result = await ElementPicker.PickAsync(this, _nativeHelper, mode);
+        foreach (var window in windows) window.IsVisible = true;
+        return result;
+    }
+
+    public async Task<PixelRect?> PickRegionAsync()
+    {
+        if (Application.Current is not { ApplicationLifetime: ClassicDesktopStyleApplicationLifetime desktopLifetime })
+        {
+            return null;
+        }
+
+        var windows = desktopLifetime.Windows.AsValueEnumerable().Where(w => w.IsVisible).ToList();
+        foreach (var window in windows) _nativeHelper.HideWindowWithoutAnimation(window);
+        var result = await RegionPicker.PickAsync();
         foreach (var window in windows) window.IsVisible = true;
         return result;
     }

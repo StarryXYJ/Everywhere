@@ -1,4 +1,4 @@
-﻿using Windows.Win32;
+using Windows.Win32;
 using Windows.Win32.Foundation;
 using Windows.Win32.Graphics.Gdi;
 using Windows.Win32.UI.Input.KeyboardAndMouse;
@@ -210,6 +210,148 @@ public partial class Win32VisualElementContext
             PickElementMode mode)
         {
             var window = new ElementPicker(context, nativeHelper, mode);
+            window.Show();
+            return window._taskCompletionSource.Task;
+        }
+    }
+
+    private class RegionPicker : Window
+    {
+        private readonly Bitmap _bitmap;
+        private readonly PixelRect _screenBounds;
+        private readonly Canvas _canvas;
+        private readonly Avalonia.Controls.Shapes.Rectangle _selectionRect;
+        private readonly double _scale;
+        private readonly TaskCompletionSource<PixelRect?> _taskCompletionSource = new();
+        private PixelPoint _startPoint;
+        private bool _isDragging;
+
+        private RegionPicker()
+        {
+            var allScreens = Screens.All;
+            _screenBounds = allScreens.Aggregate(default(PixelRect), (current, screen) => current.Union(screen.Bounds));
+            if (_screenBounds.Width <= 0 || _screenBounds.Height <= 0)
+            {
+                throw new InvalidOperationException("No valid screen bounds found.");
+            }
+
+            _bitmap = CaptureScreen(_screenBounds);
+            _canvas = new Canvas();
+            _selectionRect = new Avalonia.Controls.Shapes.Rectangle
+            {
+                Stroke = Brushes.Blue,
+                StrokeThickness = 2,
+                Fill = Brushes.Transparent,
+                IsHitTestVisible = false
+            };
+
+            Content = new Panel
+            {
+                IsHitTestVisible = true,
+                Children =
+                {
+                    new Image { Source = _bitmap },
+                    new Border
+                    {
+                        Background = Brushes.Black,
+                        Opacity = 0.4
+                    },
+                    _canvas
+                }
+            };
+
+            _canvas.Children.Add(_selectionRect);
+
+            Topmost = true;
+            CanResize = false;
+            ShowInTaskbar = false;
+            Cursor = new Cursor(StandardCursorType.Cross);
+            SystemDecorations = SystemDecorations.None;
+            WindowStartupLocation = WindowStartupLocation.Manual;
+
+            Position = _screenBounds.Position;
+            _scale = DesktopScaling; // we must set Position first to get the correct scaling factor
+            Width = _screenBounds.Width / _scale;
+            Height = _screenBounds.Height / _scale;
+        }
+
+        protected override void OnPointerPressed(PointerPressedEventArgs e)
+        {
+            if (e.GetCurrentPoint(this).Properties.IsLeftButtonPressed)
+            {
+                _isDragging = true;
+                var pos = e.GetPosition(this) * _scale;
+                _startPoint = new PixelPoint((int)pos.X, (int)pos.Y) + _screenBounds.Position;
+                SetSelectionRect(_startPoint, _startPoint);
+            }
+        }
+
+        protected override void OnPointerMoved(PointerEventArgs e)
+        {
+            if (_isDragging)
+            {
+                var pos = e.GetPosition(this) * _scale;
+                var currentPoint = new PixelPoint((int)pos.X, (int)pos.Y) + _screenBounds.Position;
+                SetSelectionRect(_startPoint, currentPoint);
+            }
+        }
+
+        protected override void OnPointerReleased(PointerReleasedEventArgs e)
+        {
+            if (e.InitialPressMouseButton == MouseButton.Left && _isDragging)
+            {
+                _isDragging = false;
+                var position = e.GetPosition(this) * _scale;
+                var endPoint = new PixelPoint((int)position.X, (int)position.Y) + _screenBounds.Position;
+                var selectedRect = GetPixelRect(_startPoint, endPoint);
+                _taskCompletionSource.TrySetResult(selectedRect);
+            }
+            else
+            {
+                _taskCompletionSource.TrySetResult(null);
+            }
+            Close();
+        }
+
+        protected override void OnKeyDown(KeyEventArgs e)
+        {
+            if (e.Key == Key.Escape)
+            {
+                _taskCompletionSource.TrySetResult(null);
+                Close();
+            }
+        }
+
+        protected override void OnClosed(EventArgs e)
+        {
+            _bitmap.Dispose();
+            if (!_taskCompletionSource.Task.IsCompleted)
+            {
+                _taskCompletionSource.TrySetResult(null);
+            }
+        }
+
+        private void SetSelectionRect(PixelPoint start, PixelPoint end)
+        {
+            var rect = GetPixelRect(start, end);
+            var scaledRect = rect.Translate(-(PixelVector)_screenBounds.Position).ToRect(_scale);
+            _selectionRect.Margin = new Thickness(scaledRect.X, scaledRect.Y, 0, 0);
+            _selectionRect.Width = scaledRect.Width;
+            _selectionRect.Height = scaledRect.Height;
+        }
+
+        private PixelRect GetPixelRect(PixelPoint start, PixelPoint end)
+        {
+            var x = Math.Min(start.X, end.X);
+            var y = Math.Min(start.Y, end.Y);
+            var width = Math.Abs(start.X - end.X);
+            var height = Math.Abs(start.Y - end.Y);
+            return new PixelRect(x, y, width, height);
+        }
+
+        public static Task<PixelRect?> PickAsync()
+        {
+            var window = new RegionPicker();
             window.Show();
             return window._taskCompletionSource.Task;
         }

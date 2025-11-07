@@ -1,9 +1,15 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.Diagnostics;
 using System.Diagnostics.CodeAnalysis;
+using System.Drawing;
+using System.Drawing.Imaging;
 using System.Globalization;
+using System.IO;
 using Avalonia.Input;
 using Avalonia.Input.Platform;
+using Avalonia.Media.Imaging;
+using Avalonia.Platform;
 using Avalonia.Platform.Storage;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
@@ -199,6 +205,80 @@ public partial class ChatWindowViewModel : BusyViewModelBase
             _chatAttachments.Add(await Task.Run(() => CreateFromVisualElement(element), cancellationToken));
         },
         _logger.ToExceptionHandler());
+
+    [RelayCommand(CanExecute = nameof(IsNotBusy))]
+    private Task CaptureScreenAsync() => CaptureScreenAsync(false);
+
+    [RelayCommand(CanExecute = nameof(IsNotBusy))]
+    private Task CaptureScreenRegionAsync() => CaptureScreenAsync(true);
+
+    private Task CaptureScreenAsync(bool useRegion)
+    {
+        return ExecuteBusyTaskAsync(
+            async cancellationToken =>
+            {
+                if (_chatAttachments.Count >= Settings.Internal.MaxChatAttachmentCount) return;
+
+                Avalonia.Media.Imaging.Bitmap? bitmap = null;
+                if (useRegion)
+                {
+                    // Let user select a region
+                    var region = await _visualElementContext.PickRegionAsync();
+                    if (region.HasValue)
+                    {
+                        // Capture the selected region
+                        bitmap = CaptureScreenRegion(region.Value);
+                    }
+                }
+                else
+                {
+                    // Capture the entire screen
+                    var screenElement = _visualElementContext.ElementFromPointer(PickElementMode.Screen);
+                    if (screenElement is not null)
+                    {
+                        bitmap = await screenElement.CaptureAsync();
+                    }
+                }
+
+                if (bitmap is null)
+                {
+                    _logger.LogWarning("Failed to capture screen.");
+                    return;
+                }
+
+                // Save to blob storage
+                using var stream = new MemoryStream();
+                bitmap.Save(stream, 100);
+                var blob = await _blobStorage.StorageBlobAsync(stream, "image/png", cancellationToken);
+
+                // Create chat attachment
+                var attachment = new ChatFileAttachment(
+                    new DynamicResourceKey(string.Empty),
+                    blob.LocalPath,
+                    blob.Sha256,
+                    blob.MimeType);
+                _chatAttachments.Add(attachment);
+            },
+            _logger.ToExceptionHandler());
+    }
+
+    /// <summary>
+    /// Capture ScreenRegion from region.
+    /// </summary>
+    /// <param name="region"></param>
+    /// <returns></returns>
+    private Avalonia.Media.Imaging.Bitmap CaptureScreenRegion(PixelRect region)
+    {
+        using var gdiBitmap = new System.Drawing.Bitmap(region.Width, region.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
+        using var graphics = System.Drawing.Graphics.FromImage(gdiBitmap);
+        graphics.CopyFromScreen(region.X, region.Y, 0, 0, new System.Drawing.Size(region.Width, region.Height));
+
+        // Convert to Avalonia Bitmap
+        using var stream = new MemoryStream();
+        gdiBitmap.Save(stream, System.Drawing.Imaging.ImageFormat.Png);
+        stream.Seek(0, SeekOrigin.Begin);
+        return new Avalonia.Media.Imaging.Bitmap(stream);
+    }
 
     [RelayCommand(CanExecute = nameof(IsNotBusy))]
     private Task AddClipboardAsync() => ExecuteBusyTaskAsync(
