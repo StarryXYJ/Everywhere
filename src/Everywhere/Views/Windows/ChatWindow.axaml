@@ -758,7 +758,7 @@
                   Kind="Monitor" Size="18"/>
               </MenuItem.Icon>
             </MenuItem>
-            <MenuItem
+            <!-- <MenuItem
               Command="{Binding CaptureScreenCommand}"
               Header="{I18N {x:Static LocaleKey.ChatWindow_ChatInputBox_AddAttachmentMenuItems_CaptureScreen}}">
               <MenuItem.Icon>
@@ -766,7 +766,7 @@
                   Width="18" Height="18"
                   Kind="Camera" Size="18"/>
               </MenuItem.Icon>
-            </MenuItem>
+            </MenuItem> -->
             <MenuItem
               Command="{Binding CaptureScreenRegionCommand}"
               Header="{I18N {x:Static LocaleKey.ChatWindow_ChatInputBox_AddAttachmentMenuItems_CaptureScreenRegion}}">

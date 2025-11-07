@@ -262,6 +262,11 @@ public partial class ChatWindowViewModel : BusyViewModelBase
             _logger.ToExceptionHandler());
     }
 
+    /// <summary>
+    /// Capture ScreenRegion from region.
+    /// </summary>
+    /// <param name="region"></param>
+    /// <returns></returns>
     private Avalonia.Media.Imaging.Bitmap CaptureScreenRegion(PixelRect region)
     {
         using var gdiBitmap = new System.Drawing.Bitmap(region.Width, region.Height, System.Drawing.Imaging.PixelFormat.Format32bppArgb);
